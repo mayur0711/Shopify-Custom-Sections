@@ -1,0 +1,438 @@
+<style>
+  .masonry-grid-{{ section.id }} {
+    display: grid;
+    grid-template-columns: repeat({{ section.settings.mobile_columns }}, 1fr);
+    grid-auto-rows: {{ section.settings.row_height }}px;
+    gap: {{ section.settings.gap }}px;
+    padding: {{ section.settings.padding_y }}px {{ section.settings.padding_x }}px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  @media screen and (min-width: 768px) {
+    .masonry-grid-{{ section.id }} {
+      grid-template-columns: repeat({{ section.settings.desktop_columns }}, 1fr);
+      {% if section.settings.desktop_rows > 0 %}
+        grid-template-rows: repeat({{ section.settings.desktop_rows }}, {{ section.settings.row_height }}px);
+      {% endif %}
+    }
+  }
+
+  .masonry-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: {{ section.settings.border_radius }}px;
+    display: flex;
+  }
+
+  .masonry-media-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .masonry-media-wrap img, .masonry-media-wrap video, .masonry-media-wrap iframe {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .masonry-content-wrap {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    padding: 30px;
+    background: {{ section.settings.overlay_color | color_modify: 'alpha', section.settings.overlay_opacity }};
+  }
+  
+  /* Content Positions */
+  .pos-top-left { align-items: flex-start; justify-content: flex-start; text-align: left; }
+  .pos-top-center { align-items: flex-start; justify-content: center; text-align: center; }
+  .pos-top-right { align-items: flex-start; justify-content: flex-end; text-align: right; }
+  .pos-middle-left { align-items: center; justify-content: flex-start; text-align: left; }
+  .pos-center { align-items: center; justify-content: center; text-align: center; }
+  .pos-middle-right { align-items: center; justify-content: flex-end; text-align: right; }
+  .pos-bottom-left { align-items: flex-end; justify-content: flex-start; text-align: left; }
+  .pos-bottom-center { align-items: flex-end; justify-content: center; text-align: center; }
+  .pos-bottom-right { align-items: flex-end; justify-content: flex-end; text-align: right; }
+
+  .masonry-content {
+    max-width: 100%;
+  }
+
+  .masonry-subtitle {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    color: {{ section.settings.text_color }};
+  }
+  
+  .masonry-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: {{ section.settings.text_color }};
+  }
+  
+  .masonry-text {
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: {{ section.settings.text_color }};
+  }
+  
+  .masonry-btn {
+    display: inline-block;
+    background: {{ section.settings.btn_bg_color }};
+    color: {{ section.settings.btn_text_color }};
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: opacity 0.3s ease;
+  }
+  
+  .masonry-btn:hover {
+    opacity: 0.8;
+  }
+
+  @media screen and (max-width: 767px) {
+    .masonry-title { font-size: 22px; }
+    .masonry-text { font-size: 14px; }
+    .masonry-content-wrap { padding: 20px; }
+  }
+</style>
+
+<div class="masonry-grid-{{ section.id }}">
+  {% for block in section.blocks %}
+    <style>
+      .masonry-item-{{ block.id }} {
+        grid-column: span {{ block.settings.col_span_mobile }};
+        grid-row: span {{ block.settings.row_span_mobile }};
+      }
+      @media screen and (min-width: 768px) {
+        .masonry-item-{{ block.id }} {
+          grid-column: span {{ block.settings.col_span_desktop }};
+          grid-row: span {{ block.settings.row_span_desktop }};
+        }
+      }
+    </style>
+    
+    <div class="masonry-item masonry-item-{{ block.id }}" {{ block.shopify_attributes }}>
+      <div class="masonry-media-wrap">
+        {% if block.settings.media_type == 'image' %}
+          {% if block.settings.image != blank %}
+            {{ block.settings.image | image_url: width: 1500 | image_tag: loading: 'lazy' }}
+          {% else %}
+            {{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          {% endif %}
+        {% elsif block.settings.media_type == 'video' %}
+          {% if block.settings.html5_video != blank %}
+             <video autoplay loop muted playsinline>
+               <source src="{{ block.settings.html5_video }}" type="video/mp4">
+             </video>
+          {% elsif block.settings.video_url != blank %}
+             {% if block.settings.video_url.type == 'youtube' %}
+               <iframe src="https://www.youtube.com/embed/{{ block.settings.video_url.id }}?autoplay=1&loop=1&mute=1&playlist={{ block.settings.video_url.id }}&controls=0" frameborder="0" allowfullscreen></iframe>
+             {% elsif block.settings.video_url.type == 'vimeo' %}
+               <iframe src="https://player.vimeo.com/video/{{ block.settings.video_url.id }}?autoplay=1&loop=1&muted=1&background=1" frameborder="0" allowfullscreen></iframe>
+             {% endif %}
+          {% else %}
+             {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <div class="masonry-content-wrap pos-{{ block.settings.content_position }}">
+        <div class="masonry-content">
+          {% if block.settings.subtitle != blank %}
+            <div class="masonry-subtitle">{{ block.settings.subtitle }}</div>
+          {% endif %}
+          {% if block.settings.title != blank %}
+            <div class="masonry-title">{{ block.settings.title }}</div>
+          {% endif %}
+          {% if block.settings.text != blank %}
+            <div class="masonry-text">{{ block.settings.text }}</div>
+          {% endif %}
+          {% if block.settings.btn_text != blank and block.settings.btn_link != blank %}
+            <a href="{{ block.settings.btn_link }}" class="masonry-btn">{{ block.settings.btn_text }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% schema %}
+{
+  "name": "Custom Masonry Grid",
+  "settings": [
+    {
+      "type": "range",
+      "id": "desktop_columns",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "label": "Desktop Columns",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "desktop_rows",
+      "min": 0,
+      "max": 6,
+      "step": 1,
+      "label": "Desktop Rows (0 for auto)",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "mobile_columns",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "label": "Mobile Columns",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "row_height",
+      "min": 100,
+      "max": 600,
+      "step": 10,
+      "label": "Base Row Height (px)",
+      "default": 300
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "label": "Grid Gap Space",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_x",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "label": "Side Padding",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "label": "Top/Bottom Padding",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "label": "Corner Radius (px)",
+      "default": 0
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg_color",
+      "label": "Button Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_text_color",
+      "label": "Button Text Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "label": "Overlay Opacity",
+      "default": 0.2
+    }
+  ],
+  "blocks": [
+    {
+      "type": "grid_item",
+      "name": "Grid Block",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Grid Settings"
+        },
+        {
+          "type": "range",
+          "id": "col_span_desktop",
+          "min": 1,
+          "max": 6,
+          "step": 1,
+          "label": "Column Span (Desktop)",
+          "default": 2
+        },
+        {
+          "type": "range",
+          "id": "row_span_desktop",
+          "min": 1,
+          "max": 6,
+          "step": 1,
+          "label": "Row Span (Desktop)",
+          "default": 2
+        },
+        {
+          "type": "range",
+          "id": "col_span_mobile",
+          "min": 1,
+          "max": 4,
+          "step": 1,
+          "label": "Column Span (Mobile)",
+          "default": 2
+        },
+        {
+          "type": "range",
+          "id": "row_span_mobile",
+          "min": 1,
+          "max": 4,
+          "step": 1,
+          "label": "Row Span (Mobile)",
+          "default": 1
+        },
+        {
+          "type": "header",
+          "content": "Media Settings"
+        },
+        {
+          "type": "select",
+          "id": "media_type",
+          "label": "Media Type",
+          "options": [
+            { "value": "image", "label": "Image" },
+            { "value": "video", "label": "Video" }
+          ],
+          "default": "image"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Background Image"
+        },
+        {
+          "type": "text",
+          "id": "html5_video",
+          "label": "MP4 Video Link (*Recommended over YT/Vimeo for background)",
+          "info": "Upload an MP4 in Settings > Files and paste the link here."
+        },
+        {
+          "type": "video_url",
+          "id": "video_url",
+          "label": "YouTube/Vimeo Link",
+          "accept": ["youtube", "vimeo"]
+        },
+        {
+          "type": "header",
+          "content": "Content Settings"
+        },
+        {
+          "type": "select",
+          "id": "content_position",
+          "label": "Content Position",
+          "options": [
+            { "value": "top-left", "label": "Top Left" },
+            { "value": "top-center", "label": "Top Center" },
+            { "value": "top-right", "label": "Top Right" },
+            { "value": "middle-left", "label": "Middle Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "middle-right", "label": "Middle Right" },
+            { "value": "bottom-left", "label": "Bottom Left" },
+            { "value": "bottom-center", "label": "Bottom Center" },
+            { "value": "bottom-right", "label": "Bottom Right" }
+          ],
+          "default": "center"
+        },
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "Sub-Title",
+          "default": "New Collection"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Masonry Grid Item"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Add a beautiful description for your grid item here.</p>"
+        },
+        {
+          "type": "text",
+          "id": "btn_text",
+          "label": "Button Text",
+          "default": "Shop Now"
+        },
+        {
+          "type": "url",
+          "id": "btn_link",
+          "label": "Button Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Masonry Grid",
+      "blocks": [
+        { 
+          "type": "grid_item",
+          "settings": {
+            "col_span_desktop": 2,
+            "row_span_desktop": 2
+          }
+        },
+        { 
+          "type": "grid_item",
+          "settings": {
+            "col_span_desktop": 2,
+            "row_span_desktop": 1
+          }
+        },
+        { 
+          "type": "grid_item",
+          "settings": {
+            "col_span_desktop": 2,
+            "row_span_desktop": 1
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
