@@ -1,0 +1,390 @@
+{{ 'section-rich-text.css' | asset_url | stylesheet_tag: preload: true }}
+
+{%- liquid
+  assign section_space = section.settings.section_space
+  assign section_space_class = ''
+
+  if section_space == 'top'
+    assign section_space_class = ' mb0'
+  elsif section_space == 'bottom'
+    assign section_space_class = ' mt0'
+  elsif section_space == 'none'
+    assign section_space_class = ' mt0 mb0'
+  endif
+-%}
+
+{%- liquid
+  assign section_width = section.settings.width
+  assign unique = section.id
+-%}
+
+{%- style -%}
+  #Text--{{ unique }} {
+    padding-block: {{ section.settings.padding }}px !important;
+  }
+
+  @media(max-width:1199px) {
+    #Text--{{ unique }} {
+        padding-block: calc({{ section.settings.padding }}px - ({{ section.settings.padding }}px * 25 / 100)) !important;
+    }
+  }
+{%- endstyle -%}
+
+<div
+  id="Text--{{ unique }}"
+  class="page-width grid__wrapper {{ section_width }} {{ section_space_class }} faq-wrapper section-padding"
+  data-section-id="{{ unique }}"
+>
+  <!-- LEFT SIDEBAR -->
+  <aside class="faq-left">
+    <h2 class="faq-title">{{ section.settings.main_heading }}</h2>
+    <div class="faq-description">{{ section.settings.main_description }}</div>
+
+    <ul class="faq-tabs">
+      {% for block in section.blocks %}
+        {% if block.type == 'category' %}
+          {% comment %} <li class="faq-tab" data-target="cat-{{ block.id }}"> {% endcomment %}
+          <li class="faq-tab" data-slug="{{ block.settings.category_title | handleize }}">
+            {{ block.settings.category_title }}
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </aside>
+
+  <!-- RIGHT CONTENT -->
+  <section class="faq-right">
+    {% assign current_category = '' %}
+
+    {% for block in section.blocks %}
+      {% if block.type == 'category' %}
+        {% assign current_category = block.id %}
+        {% assign slug = block.settings.category_title | handleize %}
+
+        {% comment %} <div class="faq-category-box" id="cat-{{ block.id }}"> {% endcomment %}
+        <div class="faq-category-box" id="{{ slug }}">
+          <h3 class="faq-category-heading">{{ block.settings.category_title }}</h3>
+          <div class="faq-accordion">
+      {% endif %}
+
+      {% if block.type == 'faq_item' %}
+        <div class="faq-item">
+          <button class="faq-question">
+            {{ block.settings.question }}
+            <span class="faq-icon">+</span>
+          </button>
+
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              {{ block.settings.answer }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      {% assign next_block = section.blocks[forloop.index] %}
+      {% if next_block.type == 'category' or forloop.last %}
+        </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </section>
+</div>
+
+<style>
+  /* ====== Layout ====== */
+  .faq-wrapper {
+    display: flex;
+    gap: 50px;
+    align-items: flex-start;
+  }
+
+  .faq-wrapper .faq-title {
+    font-size: 40px;
+    font-weight: 500;
+    margin: 0 0 10px;
+  }
+
+  /* ====== Tabs ====== */
+  .faq-tabs {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .faq-tab {
+    padding: 13px 15px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-transform: uppercase;
+    {% comment %} border-radius: 25px 25px 5px 5px; {% endcomment %}
+    transition: 0.25s ease;
+    max-width: 300px;
+  }
+
+  .faq-tab:hover,
+  .faq-tab.active {
+    background: #121212;
+    color: #fff;
+    {% comment %} border-radius: 25px 25px 5px 5px; {% endcomment %}
+  }
+
+  /* ====== Category Heading ====== */
+  .faq-category-heading {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    padding: 13px 15px;
+    margin: 0;
+    background: #121212;
+    color: #fff;
+    text-transform: uppercase;
+    width: fit-content;
+  }
+
+  .faq-category-box:not(:first-child) {
+    margin-top: 30px;
+  }
+
+  /* ====== FAQ Items ====== */
+  .faq-item {
+    border-bottom: 1px solid #000;
+    padding: 15px 0;
+  }
+
+  .faq-item button.faq-question {
+    background-color: unset !important;
+    color: #222 !important;
+    padding: 0;
+    margin: 0;
+    border: none;
+    width: 100%;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.5;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    gap: 10px;
+  }
+
+  .faq-icon {
+    font-size: 24px;
+    transition: transform 0.35s ease;
+  }
+
+  .faq-question.active .faq-icon {
+    transform: rotate(45deg);
+  }
+
+  /* ====== Smooth Accordion ====== */
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.45s ease, opacity 0.35s ease;
+  }
+
+  .faq-answer.open {
+    max-height: 600px;
+    opacity: 1;
+  }
+
+  {% comment %} .faq-answer-inner, {% endcomment %}
+  .faq-answer-inner p,
+  .faq-answer-inner ul {
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 10px 20px 0 0;
+    margin-bottom: 0;
+  }
+
+  @media(max-width:1599px) {
+    .faq-wrapper .faq-title {
+      font-size: 30px;
+    }
+  }
+
+  @media(min-width:1200px) {
+    .faq-left {
+      width: 30%;
+      position: sticky;
+      top: 60px;
+      height: fit-content;
+    }
+
+    .faq-right {
+      width: 70%;
+    }
+  }
+
+  @media(max-width:1199px) {
+    .faq-wrapper {
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .faq-tabs {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.faq-tab');
+    const categories = document.querySelectorAll('.faq-category-box');
+
+    /* FIRST TAB ACTIVE */
+    if (tabs.length > 0) tabs[0].classList.add('active');
+
+    /* CLICK TAB SCROLL */
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        tabs.forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        const slug = tab.dataset.slug;
+        const target = document.getElementById(slug);
+
+        window.scrollTo({
+          top: target.offsetTop - 120,
+          behavior: 'smooth',
+        });
+
+        history.replaceState(null, '', '#' + slug);
+      });
+    });
+
+    /* ACCORDION */
+    const questions = document.querySelectorAll('.faq-question');
+
+    questions.forEach((question) => {
+      question.addEventListener('click', () => {
+        const answer = question.nextElementSibling;
+        question.classList.toggle('active');
+
+        if (answer.classList.contains('open')) {
+          answer.classList.remove('open');
+        } else {
+          answer.classList.add('open');
+        }
+      });
+    });
+
+    /* SCROLL ACTIVE TAB */
+    window.addEventListener('scroll', () => {
+      let current = '';
+
+      categories.forEach((category) => {
+        const sectionTop = category.offsetTop - 150;
+        const sectionHeight = category.offsetHeight;
+
+        if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+          current = category.id;
+        }
+      });
+
+      if (current) {
+        tabs.forEach((tab) => {
+          tab.classList.remove('active');
+
+          if (tab.dataset.slug === current) {
+            tab.classList.add('active');
+          }
+        });
+      }
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Custom FAQ's Tabs",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "main_heading",
+      "label": "Heading"
+    },
+    {
+      "type": "richtext",
+      "id": "main_description",
+      "label": "Description"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Width",
+      "default": "wrapper",
+      "options": [
+        { "value": "wrapper--full-padded", "label": "Full width padded" },
+        { "value": "wrapper", "label": "Page width" },
+        { "value": "wrapper--narrow", "label": "Page width narrow" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "min": 30,
+      "max": 100,
+      "step": 10,
+      "unit": "px",
+      "label": "Section padding",
+      "default": 60
+    },
+    {
+      "type": "select",
+      "id": "section_space",
+      "label": "Section spacing",
+      "default": "none",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "top_and_bottom",
+          "label": "Top and bottom"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "visible_if": "{{ settings.section_margins > 0 }}"
+    }
+  ],
+
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [{ "type": "text", "id": "category_title", "label": "Category Title" }]
+    },
+    {
+      "type": "faq_item",
+      "name": "FAQ Item",
+      "settings": [
+        { "type": "inline_richtext", "id": "question", "label": "Question" },
+        { "type": "richtext", "id": "answer", "label": "Answer" }
+      ]
+    }
+  ],
+
+  "presets": [{ "name": "Custom FAQ's Tabs" }]
+}
+{% endschema %}
