@@ -1,0 +1,386 @@
+{%- style -%}
+  .custom-search-container {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+  }
+  .custom-search-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+  }
+  .custom-search-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+    color: #fff;
+  }
+  .custom-search-inner h2 {
+    color: #fff;
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+  .custom-search-inner p {
+    font-size: 16px;
+    margin-bottom: 30px;
+  }
+  .custom-search-box {
+    background: #fff;
+    border-radius: 4px;
+    padding: 20px;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .custom-search-tabs {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+  }
+  .custom-search-tabs li {
+    padding: 10px 5px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+  }
+  .custom-search-tabs li.active {
+    color: #000;
+    border-bottom-color: #000;
+  }
+  .custom-search-form {
+    position: relative;
+  }
+  .search-input-group {
+    display: flex;
+    gap: 10px;
+  }
+  .custom-search-input {
+    flex: 1;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  .custom-search-btn {
+    padding: 15px 30px;
+    background-color: #1a4a38;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+  }
+  .custom-search-btn:hover {
+    background-color: #123326;
+  }
+  .predictive-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: calc(100% - 110px); /* rough width excluding btn */
+    background: #fff;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    text-align: left;
+    z-index: 10;
+    margin-top: 5px;
+    display: none;
+  }
+  .predictive-search-item {
+    display: block;
+    padding: 10px 15px;
+    color: #333;
+    text-decoration: none;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .predictive-search-item:hover {
+    background: #f9f9f9;
+  }
+  @media (max-width: 600px) {
+    .search-input-group {
+      flex-direction: column;
+    }
+    .custom-search-btn {
+      width: 100%;
+    }
+    .predictive-search-results {
+      width: 100%;
+    }
+  }
+{%- endstyle -%}
+
+<div
+  class="custom-search-container"
+  style="{% if section.settings.bg_image %}background-image: url('{{ section.settings.bg_image | img_url: 'master' }}');{% endif %}"
+>
+  <div class="custom-search-overlay"></div>
+  <div class="custom-search-inner">
+    {% if section.settings.title != blank %}
+      <h2>{{ section.settings.title }}</h2>
+    {% endif %}
+    {% if section.settings.text != blank %}
+      <p>{{ section.settings.text }}</p>
+    {% endif %}
+
+    {% if section.settings.enable_search %}
+      <div class="custom-search-box">
+        <ul class="custom-search-tabs">
+          <li class="tab-item active" data-type="all" data-placeholder="Search for anything...">
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              role="presentation"
+              class="icon icon-search"
+              viewBox="0 0 18 19"
+              width="14"
+            >
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M11.03 11.68A5.784 5.784 0 112.85 3.5a5.784 5.784 0 018.18 8.18zm.26 1.12a6.78 6.78 0 11.72-.7l5.4 5.4a.5.5 0 11-.71.7l-5.41-5.4z" fill="currentColor"></path>
+            </svg>
+            Search All
+          </li>
+          <li class="tab-item" data-type="page" data-placeholder="Enter your city (e.g., Chicago, New York, London)...">
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              role="presentation"
+              class="icon icon-page"
+              viewBox="0 0 18 18"
+              width="14"
+            >
+              <path d="M14 2H4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V4a2 2 0 00-2-2zM4 0h10a4 4 0 014 4v10a4 4 0 01-4 4H4a4 4 0 01-4-4V4a4 4 0 014-4z" fill="currentColor"></path>
+            </svg>
+            Cities
+          </li>
+          <li class="tab-item" data-type="article" data-blog="events" data-placeholder="Search for events...">
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              role="presentation"
+              class="icon icon-calendar"
+              viewBox="0 0 18 18"
+              width="14"
+            >
+              <path d="M4 2v2H2v12h14V4h-2V2h2a2 2 0 012 2v12a2 2 0 01-2 2H2a2 2 0 01-2-2V4a2 2 0 012-2h2zm10 2v2h-2V4h2zM6 4v2H4V4h2zM2 8h14v8H2V8z" fill="currentColor"></path>
+            </svg>
+            Events
+          </li>
+          <li class="tab-item" data-type="article" data-blog="normal" data-placeholder="Search for articles...">
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              role="presentation"
+              class="icon icon-document"
+              viewBox="0 0 18 18"
+              width="14"
+            >
+              <path d="M10 0H2a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6l-8-6zm6 16H2V2h7v5h5v9zm-1-7H5v-2h10v2zm0 4H5v-2h10v2z" fill="currentColor"></path>
+            </svg>
+            Articles
+          </li>
+        </ul>
+
+        <form action="{{ routes.search_url }}" method="get" class="custom-search-form" id="customSearchForm">
+          <input type="hidden" name="type" id="search-type" value="product,page,article,collection">
+          <input type="hidden" name="options[prefix]" value="last">
+
+          <div class="search-input-group">
+            <input
+              type="search"
+              name="q"
+              id="customSearchInput"
+              placeholder="Search for anything..."
+              class="custom-search-input"
+              autocomplete="off"
+            >
+            <button type="submit" class="custom-search-btn">Search</button>
+          </div>
+          <div class="predictive-search-results" id="predictiveResults"></div>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.custom-search-tabs .tab-item');
+    const searchInput = document.getElementById('customSearchInput');
+    const searchTypeInput = document.getElementById('search-type');
+    const searchForm = document.getElementById('customSearchForm');
+    const resultsContainer = document.getElementById('predictiveResults');
+    let currentFilterType = 'all';
+    let currentBlogFilter = null;
+    let debounceTimer;
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', function () {
+        tabs.forEach((t) => t.classList.remove('active'));
+        this.classList.add('active');
+
+        let type = this.getAttribute('data-type');
+        let placeholder = this.getAttribute('data-placeholder');
+        currentBlogFilter = this.getAttribute('data-blog');
+        currentFilterType = type;
+
+        if (type === 'all') {
+          searchTypeInput.value = 'product,page,article,collection';
+        } else {
+          searchTypeInput.value = type;
+        }
+
+        searchInput.placeholder = placeholder;
+        searchInput.focus();
+
+        // Trigger search if something is already typed
+        if (searchInput.value.length > 2) {
+          fetchPredictiveSearch(searchInput.value);
+        }
+      });
+    });
+
+    searchInput.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      const query = this.value;
+      if (query.length >= 2) {
+        debounceTimer = setTimeout(() => {
+          fetchPredictiveSearch(query);
+        }, 100);
+      } else {
+        resultsContainer.style.display = 'none';
+        resultsContainer.innerHTML = '';
+      }
+    });
+
+    // Close results when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!searchForm.contains(e.target)) {
+        resultsContainer.style.display = 'none';
+      }
+    });
+
+    function fetchPredictiveSearch(query) {
+      let typeQuery = currentFilterType === 'all' ? 'product,page,article,collection' : currentFilterType;
+
+      fetch(
+        `${window.Shopify.routes.root}search/suggest.json?q=${encodeURIComponent(
+          query
+        )}&resources[type]=${typeQuery}&resources[limit]=10&section_id=predictive-search`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          let results = [];
+
+          if (currentFilterType === 'all') {
+            if (data.resources.results.collections) results = results.concat(data.resources.results.collections);
+            if (data.resources.results.products) results = results.concat(data.resources.results.products);
+            if (data.resources.results.pages) results = results.concat(data.resources.results.pages);
+            if (data.resources.results.articles) results = results.concat(data.resources.results.articles);
+          } else if (currentFilterType === 'page' && data.resources.results.pages) {
+            results = data.resources.results.pages;
+          } else if (currentFilterType === 'article' && data.resources.results.articles) {
+            let articles = data.resources.results.articles;
+            // Filter by blog if needed. Assumes URL contains the blog handle
+            // e.g. /blogs/events/my-event-title
+            if (currentBlogFilter === 'events') {
+              results = articles.filter((article) => article.url.includes('/blogs/events/'));
+            } else if (currentBlogFilter === 'normal') {
+              // Exclude events from normal articles
+              results = articles.filter((article) => !article.url.includes('/blogs/events/'));
+            } else {
+              results = articles;
+            }
+          }
+
+          renderResults(results);
+        })
+        .catch((error) => {
+          console.error('Predictive search error:', error);
+        });
+    }
+
+    function renderResults(results) {
+      if (results.length > 0) {
+        let html = '';
+        results.forEach((result) => {
+          html += `<a href="${result.url}" class="predictive-search-item">${result.title}</a>`;
+        });
+        resultsContainer.innerHTML = html;
+        resultsContainer.style.display = 'block';
+      } else {
+        resultsContainer.innerHTML = '<div class="predictive-search-item">No results found.</div>';
+        resultsContainer.style.display = 'block';
+      }
+    }
+
+    searchForm.addEventListener('submit', function (e) {
+      // Custom form submission logic if needed to strictly filter event blogs on the search results page.
+      // E.g., redirecting to a filtered URL. Shopify search page doesn't natively filter by blog handle easily.
+      // But we can append a hidden input or handle via JS redirect.
+      if (currentFilterType === 'article' && currentBlogFilter === 'events') {
+        // Appending "events" might not perfectly filter on the backend unless you use a custom search page template,
+        // but modifying the query can help:
+        // searchInput.value = searchInput.value + ' blog:events'; // pseudo-filter
+      }
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Custom Search Section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "Background Image"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Find the Best Christmas Events Near You"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Text",
+      "default": "Discover the top holiday markets, light displays, performances and family experiences."
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_search",
+      "label": "Enable Search Box",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Search Section",
+      "category": "Search"
+    }
+  ]
+}
+{% endschema %}
+
+
